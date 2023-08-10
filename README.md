@@ -10,13 +10,13 @@ deve imediatamente ir para a direita, se o jogador atacar, o personagem deve rea
 “mapa2.txt”, “mapa3.txt”, etc.), onde o valor num´erico indica a fase correspondente ao mapa.
 • Cada mapa deve ser estruturado como uma matriz de caracteres de 30 linhas por 60 colunas. O mapa deve ser
 fechado (isto é, cercado de paredes)
-os itens do jogo devem ser representados no arquivo do mapa com os seguintes caracteres:
+# itens do jogo devem ser representados no arquivo do mapa com os seguintes caracteres:
 Caractere Significado
 J Posicao inicial do personagem
 I Inimigo
 B Bomba coletavel
 P Portal para pr´oxima fase
-# Parede
+"#" Parede
 Espaco em branco Area de transito (posicao vazia)
 X Fogueira (armadilha)
 
