@@ -2,7 +2,7 @@
 
 Oi.... Precisamos fazer o Jogo.
 Requisitos mínimos:
-• Os elementos visuais do jogo devem ser implementados e exibidos em modo texto (atraves de caracteres).
+• Os elementos visuais do jogo devem ser implementados e exibidos em modo texto (atraves de caracteres).\n
 • O jogo nao deve ter delay, ou seja, ao ser disparada uma acao do jogador, o jogo deve responder imediatamente
 (exceto quando o delay é deliberado). Por exemplo: se o jogador movimentar o personagem para direita, ele
 deve imediatamente ir para a direita, se o jogador atacar, o personagem deve realizar o ataque, etc.
