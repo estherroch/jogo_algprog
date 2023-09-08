@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <time.h>
 #include "menu.h"
+#include "move.h"
 
 #define LARGURA 1200
 #define ALTURA 600
