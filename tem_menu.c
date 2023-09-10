@@ -18,7 +18,9 @@
 //=======================================================================================================================================================//
 
 int vidas = 3;
-
+int lastUpdate = 1;
+int colectedBombs = 0;
+double lastMove = 0;
 
 typedef struct   // CRIA UMA ESTRUTURA PARA ARMAZENAR A POSICAO DO JOGADOR E DOS INIMIGOS{
 {
@@ -40,6 +42,45 @@ typedef enum //Menu
 
 
 //=======================================================================================================================================================//
+int deveMover(POSICAO *jogador, int alt, int larg, char mapa[MAPA_LINHA][MAPA_COLUNA])
+{
+    int newPositionX = jogador->matrixPositionX + jogador->dx;
+    int newPositionY = jogador->matrixPositionY + jogador->dy;
+
+    if (newPositionX < 0 || newPositionX >= MAPA_LINHA || newPositionY < 0 || newPositionY >= MAPA_COLUNA) // VERIFICA SE A POSICAO CALCULADA ESTA DENTRO DOS LIMITES DA TELA.
+    {
+        printf("fora dos limites\n");
+        return 0;
+    }
+
+    if (mapa[newPositionX][newPositionY] == '#')   // VERIFICA SE A NOVA POSICAO CORRESPONDE A UMA PAREDE.
+    {
+        printf("parede\n");
+        return 0;
+    }
+
+    if (mapa[newPositionX][newPositionY] == 'X')   // VERIFICA SE A NOVA POSICAO CORRESPONDE A UMA ARMADILHA.
+    {
+        printf("armadilha\n");
+        vidas--;
+    }
+
+    if (mapa[newPositionX][newPositionY] == 'I')   // VERIFICA SE A NOVA POSICAO CORRESPONDE A UMA ARMADILHA.
+    {
+        printf("inimigo\n");
+        printf("vidas: %d\n", vidas);
+        vidas--;
+        return 0;
+    }
+
+    if (mapa[newPositionX][newPositionY] == 'B')   // VERIFICA SE A NOVA POSICAO CORRESPONDE A UMA BOMBA.
+    {
+        printf("bomba\n");
+        colectedBombs++;
+    }
+
+    return 1; // CASO ESTEJA FORA DOS LIMITES OU SEJA UMA PAREDE.
+}
 
 void DrawMenu(MenuOptions currentOption)   // Funcao que abre o MENU
 {
@@ -64,12 +105,10 @@ void DrawMenu(MenuOptions currentOption)   // Funcao que abre o MENU
 
 //=======================================================================================================================================================//
 
-int moveInimigo(POSICAO *inimigo, int larg, int alt)
+int moveInimigo(POSICAO *inimigo, int larg, int alt, char mapa[MAPA_LINHA][MAPA_COLUNA])
 {
+    while(true){
 
-    if ((inimigo->x + LADO) < LARGURA && (inimigo->y + LADO) < ALTURA &&
-            (inimigo->x) > 0 && (inimigo->y) > 0)
-    {
         int dx = GetRandomValue(-1, 1); // Dire��o aleat�ria
         int dy = GetRandomValue(-1, 1); // Dire��o aleat�ria
 
@@ -78,32 +117,17 @@ int moveInimigo(POSICAO *inimigo, int larg, int alt)
             dx = GetRandomValue(-1, 1);
             dy = GetRandomValue(-1, 1);
         }
-        inimigo->x += dx * LADO;
-        inimigo->y += dy * LADO; //Atualiza posi��o
-
-    }
-    else
-    {
-        inimigo->dx = -inimigo->dx; // se bater na parede, reverte o movimento
-        inimigo->dy = -inimigo->dy;
-
-        if (inimigo->x <= 0)
-        {
-            inimigo->x = 1;
-        }
-        if ((inimigo->x + LADO) >= LARGURA)
-        {
-            inimigo->x = LARGURA - LADO - 1;
-        }
-        if (inimigo->y <= 0)
-        {
-            inimigo->y = 1;
-        }
-        if ((inimigo->y + LADO) >= ALTURA)
-        {
-            inimigo->y = ALTURA - LADO - 1;
+        inimigo->dx = dx;
+        inimigo->dy = dy;
+        if (deveMover(inimigo, larg, alt, mapa)){
+            inimigo->matrixPositionX += dx;
+            inimigo->matrixPositionY += dy;
+            return 1;
         }
     }
+    
+    return 0;
+
 }
 
 //=======================================================================================================================================================//
@@ -217,6 +241,8 @@ int leMapa(char *nome, POSICAO *jogador, POSICAO inimigos[], int *num_inimigos, 
                 {
                     inimigos[*num_inimigos].x = j * LADO;
                     inimigos[*num_inimigos].y = i * LADO;
+                    inimigos[*num_inimigos].matrixPositionX = i;
+                    inimigos[*num_inimigos].matrixPositionY = j;
                     inimigos[*num_inimigos].dx = GetRandomValue(-1, 1);
                     inimigos[*num_inimigos].dy = GetRandomValue(-1, 1);
                     (*num_inimigos)++;
@@ -225,15 +251,7 @@ int leMapa(char *nome, POSICAO *jogador, POSICAO inimigos[], int *num_inimigos, 
         }
         }
 
-        // print mapa
-        for (int i = 0; i < MAPA_LINHA; i++)
-        {
-            for (int j = 0; j < MAPA_COLUNA; j++)
-            {
-                printf("%c", mapa[i][j]);
-            }
-            printf("\n");
-        }
+        printf("num inimigos: %d\n", *num_inimigos);
 
         fclose(mapa_arq);
 
@@ -246,31 +264,7 @@ int leMapa(char *nome, POSICAO *jogador, POSICAO inimigos[], int *num_inimigos, 
 
 // MOVIMENTO DO JOGADOR.
 
-int deveMover(POSICAO *jogador, int alt, int larg, char mapa[MAPA_LINHA][MAPA_COLUNA])
-{
-    int newPositionX = jogador->matrixPositionX + jogador->dx;
-    int newPositionY = jogador->matrixPositionY + jogador->dy;
 
-    printf("posicao x: %d\n", newPositionX);
-    printf("posicao y: %d\n", newPositionY);
-    // printf("posicao y raiz: %d\n", jogador->y);
-
-    // printf ("posicao x: %d\n", posicao_x);
-    // printf ("posicao y: %d\n", posicao_y);
-    if (newPositionX < 0 || newPositionX >= MAPA_LINHA || newPositionY < 0 || newPositionY >= MAPA_COLUNA) // VERIFICA SE A POSICAO CALCULADA ESTA DENTRO DOS LIMITES DA TELA.
-    {
-        printf("fora dos limites\n");
-        return 0;
-    }
-
-    if (mapa[newPositionX][newPositionY] == '#')   // VERIFICA SE A NOVA POSICAO CORRESPONDE A UMA PAREDE.
-    {
-        printf("parede\n");
-        return 0;
-    }
-
-    return 1; // CASO ESTEJA FORA DOS LIMITES OU SEJA UMA PAREDE.
-}
 
 //=======================================================================================================================================================//
 
@@ -310,6 +304,14 @@ void atualizarMapaJogador(char mapa[MAPA_LINHA][MAPA_COLUNA], POSICAO jogador)
     mapa[jogador.matrixPositionX][jogador.matrixPositionY] = 'J';
 }
 
+void atualizarMapaInimigo(char mapa[MAPA_LINHA][MAPA_COLUNA], POSICAO inimigo)
+{
+    // Limpe a posi��o anterior do jogador no mapa
+    mapa[(inimigo.matrixPositionX - inimigo.dx)][(inimigo.matrixPositionY - inimigo.dy)] = ' ';
+
+    // Atualize a nova posi��o do jogador no mapa
+    mapa[inimigo.matrixPositionX][inimigo.matrixPositionY] = 'I';
+}
 
 void atualizarMapaGrafico(char mapa[][MAPA_COLUNA], POSICAO jogador)
 {
@@ -453,21 +455,13 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
 //...........................................................................................................................//
 
 
-        // for (int i = 0; i < num_inimigos; i++)
-        // {
-        //     moveInimigo(&inimigos[i], LARGURA, ALTURA);
-        // }
-
         int frame_counter = 0;
-        int enemy_update_freq = 3;
+        int enemy_update_freq = 2;
 
 
 
         atualizarMapaGrafico(mapa, jogador);
-        // for (int i = 0; i < num_inimigos; i++)
-        // {
-        //     moveInimigo(&inimigos[i], LARGURA, ALTURA);
-        // }
+        
 ////// TEMPO
 
 
@@ -483,77 +477,84 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
 //...........................................................................................................................//
 
 // VERIFICA AS ENTRADAS DO TECLADO PARA MOVER O JOGADOR.
+        // make sure that the player can only move every 10 frames using time from last move
 
-        if (IsKeyDown(KEY_RIGHT))
+
+        if (GetTime() - lastMove > 0.1)
         {
-            printf("direita\n");
-            jogador.dx = 0;
-            jogador.dy = 1;
-
-            if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
+            lastMove = GetTime();
+            printf("last move: %f\n", lastMove);
+            if (IsKeyDown(KEY_RIGHT))
             {
-                printf("moveu direita\n");
-                move(&jogador);
-                atualizarMapaJogador(mapa, jogador);
+                jogador.dx = 0;
+                jogador.dy = 1;
+                
+                if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
+                {
+                    move(&jogador);
+                    atualizarMapaJogador(mapa, jogador);
+                }
+            }
+            else if (IsKeyDown(KEY_LEFT))
+            {
+                jogador.dx = 0;
+                jogador.dy = -1;
+
+                if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
+                {
+                    move(&jogador);
+                    atualizarMapaJogador(mapa, jogador);
+                }
+            }
+
+            if (IsKeyDown(KEY_DOWN))
+            {
+                jogador.dy = 0;
+                jogador.dx = 1;
+
+                if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
+                {
+                    move(&jogador);
+                    atualizarMapaJogador(mapa, jogador);
+                }
+            }
+            else if (IsKeyDown(KEY_UP))
+            {
+                jogador.dy = 0;
+                jogador.dx = -1;
+
+                if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
+                {
+                    move(&jogador);
+                    atualizarMapaJogador(mapa, jogador);
+                }
+            }
+            // print the TempoJogando
+            // printf("segundos: %d\n", segundos);
+            
+            
+
+            if (frame_counter >= enemy_update_freq)  // !!!!!!!! NAO SEI OQ ISSO AQUI FAZ
+            {
+
+                frame_counter = 0;
+            }
+        }
+
+        if (segundos % enemy_update_freq == 0) // MOVIMENTA O INIMIGO
+            {
+                if (lastUpdate != segundos)
+                {
+                    for (int i = 0; i < num_inimigos; i++)
+                    {
+                        if(moveInimigo(&inimigos[i], MAPA_LINHA, ALTURA, mapa))
+                            atualizarMapaInimigo(mapa, inimigos[i]);
+                    }
+                    lastUpdate = segundos;
+                    printf("segundos: %d\n", segundos);
+                }
                 // printMap(mapa);
             }
-        }
-        else if (IsKeyDown(KEY_LEFT))
-        {
-            printf("esquerda\n");
-            jogador.dx = 0;
-            jogador.dy = -1;
-
-            if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
-            {
-                printf("moveu esquerda\n");
-                move(&jogador);
-                atualizarMapaJogador(mapa, jogador);
-            }
-        }
-
-        if (IsKeyDown(KEY_DOWN))
-        {
-            printf("baixo\n");
-            jogador.dy = 0;
-            jogador.dx = 1;
-
-            if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
-            {
-                printf("moveu baixo\n");
-                move(&jogador);
-                atualizarMapaJogador(mapa, jogador);
-            }
-        }
-        else if (IsKeyDown(KEY_UP))
-        {
-            printf("cima\n");
-            jogador.dy = 0;
-            jogador.dx = -1;
-
-            if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
-            {
-                printf("moveu cima\n");
-                move(&jogador);
-                atualizarMapaJogador(mapa, jogador);
-            }
-        }
-
-        if (frame_counter % enemy_update_freq == 0) // MOVIMENTA O INIMIGO
-        {
-            for (int i = 0; i < MAX_INIMIGOS; i++)
-            {
-                moveInimigo(&inimigos[i], MAPA_LINHA, ALTURA);
-            }
-        }
-
-        if (frame_counter >= enemy_update_freq)  // !!!!!!!! NAO SEI OQ ISSO AQUI FAZ
-        {
-
-            frame_counter = 0;
-        }
-
-
 //...........................................................................................................................//
 
 // VERIFICA COLISAO COM OS INIMIGOS.
