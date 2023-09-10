@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 #define LARGURA 1200
 #define ALTURA 600
@@ -25,6 +26,8 @@ typedef struct   // CRIA UMA ESTRUTURA PARA ARMAZENAR A POSICAO DO JOGADOR E DOS
     int y;
     int dx;
     int dy;
+    int matrixPositionX;
+    int matrixPositionY;
 } POSICAO;
 
 
@@ -42,16 +45,16 @@ void DrawMenu(MenuOptions currentOption)   // Funcao que abre o MENU
 {
     ClearBackground(RAYWHITE);  // Limpa o fundo da tela com a cor branca.
 
-    // Desenha o título do jogo no centro da tela.
+    // Desenha o tï¿½tulo do jogo no centro da tela.
     DrawText("SAIA VIVO DO LABIRINTO", GetScreenWidth() / 2 - MeasureText("SAIA VIVO DO LABIRINTO", 40) / 2, 120, 50, PURPLE);
 
-    // Verifica se a opção atual é "Iniciar Jogo" e desenha-a de forma destacada ou não.
+    // Verifica se a opï¿½ï¿½o atual ï¿½ "Iniciar Jogo" e desenha-a de forma destacada ou nï¿½o.
     if (currentOption == MENU_START)
         DrawText("> Iniciar Jogo <", GetScreenWidth() / 2 - MeasureText("> Iniciar Jogo <", 20) / 2, GetScreenHeight() / 2 - 20, 20, GRAY);
     else
         DrawText("Iniciar Jogo", GetScreenWidth() / 2 - MeasureText("Iniciar Jogo", 20) / 2, GetScreenHeight() / 2 - 20, 20, DARKGRAY);
 
-    // Verifica se a opção atual é "Sair" e desenha-a de forma destacada ou não.
+    // Verifica se a opï¿½ï¿½o atual ï¿½ "Sair" e desenha-a de forma destacada ou nï¿½o.
     if (currentOption == MENU_EXIT)
         DrawText("> Sair <", GetScreenWidth() / 2 - MeasureText("> Sair <", 20) / 2, GetScreenHeight() / 2 + 20, 20, GRAY);
     else
@@ -67,8 +70,8 @@ int moveInimigo(POSICAO *inimigo, int larg, int alt)
     if ((inimigo->x + LADO) < LARGURA && (inimigo->y + LADO) < ALTURA &&
             (inimigo->x) > 0 && (inimigo->y) > 0)
     {
-        int dx = GetRandomValue(-1, 1); // Direção aleatória
-        int dy = GetRandomValue(-1, 1); // Direção aleatória
+        int dx = GetRandomValue(-1, 1); // Direï¿½ï¿½o aleatï¿½ria
+        int dy = GetRandomValue(-1, 1); // Direï¿½ï¿½o aleatï¿½ria
 
         while (dx == 0 && dy == 0)
         {
@@ -76,7 +79,7 @@ int moveInimigo(POSICAO *inimigo, int larg, int alt)
             dy = GetRandomValue(-1, 1);
         }
         inimigo->x += dx * LADO;
-        inimigo->y += dy * LADO; //Atualiza posição
+        inimigo->y += dy * LADO; //Atualiza posiï¿½ï¿½o
 
     }
     else
@@ -104,6 +107,18 @@ int moveInimigo(POSICAO *inimigo, int larg, int alt)
 }
 
 //=======================================================================================================================================================//
+
+void printMap (char mapa[MAPA_LINHA][MAPA_COLUNA])
+{
+    for (int i = 0; i < MAPA_LINHA; i++)
+    {
+        for (int j = 0; j < MAPA_COLUNA; j++)
+        {
+            printf("%c", mapa[i][j]);
+        }
+        printf("\n");
+    }
+}
 
 // REINICIA O JOGO - OS ELEMENTOS/ PERSONAGENS DO JOGO SEMPRE INICIAM NA MESMA POSICAO.
 
@@ -156,10 +171,9 @@ void drawSquare(int x, int y, int size, Color color)
 
 // LE O MAPA A PARTIR DE UM ARQUIVO TXT.
 
-int leMapa(char *nome, POSICAO *jogador, POSICAO inimigos[], int *num_inimigos, char mapa[][MAPA_COLUNA]) // ACHO Q N PRECISA RECEBER OS INIMIGOS E O JOGADOR COMO ARGUMENTO N SEI
+int leMapa(char *nome, POSICAO *jogador, POSICAO inimigos[], int *num_inimigos, char mapa[MAPA_LINHA][MAPA_COLUNA]) // ACHO Q N PRECISA RECEBER OS INIMIGOS E O JOGADOR COMO ARGUMENTO N SEI
 {
 
-    int i = 0, j = 0;
     char caractere; // REPRESENTA OS CARACTERES PRESENTES NO ARQUIVO.
 
 
@@ -175,35 +189,50 @@ int leMapa(char *nome, POSICAO *jogador, POSICAO inimigos[], int *num_inimigos, 
     else
     {
 
-        for (i = 0; i < MAPA_LINHA; i++)
-        {
-            for (j = 0; j < MAPA_COLUNA; j++)
-            {
-                caractere = getc(mapa_arq);
-                mapa[i][j] = caractere;
-
-                if (caractere == 'J')
+        for (int i = 0; i < MAPA_LINHA; i++) {
+        for (int j = 0; j < MAPA_COLUNA; j++) {
+            char c = fgetc(mapa_arq);
+            if (c == '\n') {  // Skip newline characters
+                j--;
+                continue;
+            }
+            mapa[i][j] = c;
+            if (c == 'J')
                 {
-                    jogador->x = j * LADO;
-                    jogador->y = i * LADO;
+                    jogador->x = i * LADO;
+                    jogador->y = j * LADO;
+                    printf("jogador y: %d\n", jogador->y);
                     jogador->dx = 0;
                     jogador->dy = 0;
+                    jogador->matrixPositionX = i;
+                    jogador->matrixPositionY = j;
+                    printf("jogador matrix y: %d\n", jogador->matrixPositionY);
+                    printf("jogador matrix x: %d\n", jogador->matrixPositionX);
                 }
 
 
-                if (caractere == 'I')
+            if (c == 'I')
+            {
+                if (*num_inimigos < MAX_INIMIGOS)
                 {
-                    if (*num_inimigos < MAX_INIMIGOS)
-                    {
-                        inimigos[*num_inimigos].x = j * LADO;
-                        inimigos[*num_inimigos].y = i * LADO;
-                        inimigos[*num_inimigos].dx = GetRandomValue(-1, 1);
-                        inimigos[*num_inimigos].dy = GetRandomValue(-1, 1);
-                        (*num_inimigos)++;
-                    }
+                    inimigos[*num_inimigos].x = j * LADO;
+                    inimigos[*num_inimigos].y = i * LADO;
+                    inimigos[*num_inimigos].dx = GetRandomValue(-1, 1);
+                    inimigos[*num_inimigos].dy = GetRandomValue(-1, 1);
+                    (*num_inimigos)++;
                 }
             }
-            getc(mapa_arq);
+        }
+        }
+
+        // print mapa
+        for (int i = 0; i < MAPA_LINHA; i++)
+        {
+            for (int j = 0; j < MAPA_COLUNA; j++)
+            {
+                printf("%c", mapa[i][j]);
+            }
+            printf("\n");
         }
 
         fclose(mapa_arq);
@@ -219,20 +248,24 @@ int leMapa(char *nome, POSICAO *jogador, POSICAO inimigos[], int *num_inimigos, 
 
 int deveMover(POSICAO *jogador, int alt, int larg, char mapa[MAPA_LINHA][MAPA_COLUNA])
 {
-    int posicao_x = jogador->x + (jogador->dx * LADO); // POSICAO APOS DESLOCAMENTO.
-    int posicao_y = jogador->y + (jogador->dy * LADO);
+    int newPositionX = jogador->matrixPositionX + jogador->dx;
+    int newPositionY = jogador->matrixPositionY + jogador->dy;
 
-    if (posicao_x < 0 || posicao_x >= LARGURA || posicao_y < 0 || posicao_y >= ALTURA) // VERIFICA SE A POSICAO CALCULADA ESTA DENTRO DOS LIMITES DA TELA.
+    printf("posicao x: %d\n", newPositionX);
+    printf("posicao y: %d\n", newPositionY);
+    // printf("posicao y raiz: %d\n", jogador->y);
+
+    // printf ("posicao x: %d\n", posicao_x);
+    // printf ("posicao y: %d\n", posicao_y);
+    if (newPositionX < 0 || newPositionX >= MAPA_LINHA || newPositionY < 0 || newPositionY >= MAPA_COLUNA) // VERIFICA SE A POSICAO CALCULADA ESTA DENTRO DOS LIMITES DA TELA.
     {
-
+        printf("fora dos limites\n");
         return 0;
     }
 
-    int mapa_x = posicao_x / LADO; // CALCULA AS COORDENADAS CORRESPONDENTES A NOVA POSICAO.
-    int mapa_y = posicao_y / LADO;
-
-    if (mapa[mapa_x][mapa_y] == '#')   // VERIFICA SE A NOVA POSICAO CORRESPONDE A UMA PAREDE.
+    if (mapa[newPositionX][newPositionY] == '#')   // VERIFICA SE A NOVA POSICAO CORRESPONDE A UMA PAREDE.
     {
+        printf("parede\n");
         return 0;
     }
 
@@ -244,8 +277,8 @@ int deveMover(POSICAO *jogador, int alt, int larg, char mapa[MAPA_LINHA][MAPA_CO
 
 void move(POSICAO *jogador)
 {
-    jogador->x += jogador->dx * LADO;
-    jogador->y += jogador->dy * LADO;
+    jogador->matrixPositionX += jogador->dx;
+    jogador->matrixPositionY += jogador->dy;
 
 }
 
@@ -255,14 +288,14 @@ void escreverMovimentoInimigo(FILE *arquivo, POSICAO *inimigo)
     if (arquivo == NULL)
     {
         printf("Erro ao abrir o arquivo para escrita\n");
-        return; // Saia da função se o arquivo não puder ser aberto
+        return; // Saia da funï¿½ï¿½o se o arquivo nï¿½o puder ser aberto
     }
 
-    // Registre a direção atual do movimento do inimigo no arquivo
+    // Registre a direï¿½ï¿½o atual do movimento do inimigo no arquivo
     fprintf(arquivo, "Inimigo X: %d, Y: %d\n", inimigo->dx, inimigo->dy);
 
 
-    // Feche o arquivo após concluir a escrita
+    // Feche o arquivo apï¿½s concluir a escrita
     fclose(arquivo);
 }
 
@@ -270,11 +303,11 @@ void escreverMovimentoInimigo(FILE *arquivo, POSICAO *inimigo)
 //=======================================================================================================================================================//
 void atualizarMapaJogador(char mapa[MAPA_LINHA][MAPA_COLUNA], POSICAO jogador)
 {
-    // Limpe a posição anterior do jogador no mapa
-    mapa[jogador.y / LADO][jogador.x / LADO] = ' ';
+    // Limpe a posiï¿½ï¿½o anterior do jogador no mapa
+    mapa[(jogador.matrixPositionX - jogador.dx)][(jogador.matrixPositionY - jogador.dy)] = ' ';
 
-    // Atualize a nova posição do jogador no mapa
-    mapa[jogador.y / LADO][jogador.x / LADO] = 'J';
+    // Atualize a nova posiï¿½ï¿½o do jogador no mapa
+    mapa[jogador.matrixPositionX][jogador.matrixPositionY] = 'J';
 }
 
 
@@ -287,7 +320,7 @@ void atualizarMapaGrafico(char mapa[][MAPA_COLUNA], POSICAO jogador)
             char caractere = mapa[i][j];
             Color color = WHITE;
 
-            // Verifique se o caractere é 'J' (jogador)
+            // Verifique se o caractere ï¿½ 'J' (jogador)
             if (caractere == 'J')
             {
                 color = PURPLE; // Defina a cor do jogador como roxa
@@ -320,7 +353,7 @@ void atualizarMapaGrafico(char mapa[][MAPA_COLUNA], POSICAO jogador)
             // Apague o quadrado anterior
             DrawRectangle(j * LADO, i * LADO, LADO, LADO, RAYWHITE);
 
-            // Desenhe o novo quadrado na posição atual com a cor correspondente
+            // Desenhe o novo quadrado na posiï¿½ï¿½o atual com a cor correspondente
             DrawRectangle(j * LADO, i * LADO, LADO, LADO, color);
         }
     }
@@ -343,8 +376,6 @@ int main(void)
     char mapa[MAPA_LINHA][MAPA_COLUNA];
     int num_inimigos = 0;
     int conta_armadilha = 0;
-    FILE *mapa_arq;
-    mapa_arq = fopen("maps.txt", "a");
     srand(time(NULL));
 
 
@@ -360,51 +391,51 @@ int main(void)
 
     SetTargetFPS(60);
 
-        double TempoDeJogo = GetTime(); // Inicializa tempo
-        char tempoTexto[16];
+    double TempoDeJogo = GetTime(); // Inicializa tempo
+    char tempoTexto[16];
 
 //...........................................................................................................................//
 
-    if (leMapa("maps.txt", &jogador, inimigos, &num_inimigos, mapa))
+    if (leMapa("mapa2.txt", &jogador, inimigos, &num_inimigos, mapa))
     {
-        atualizarMapaGrafico(mapa, jogador); // Atualiza a representação gráfica inicial
+        atualizarMapaGrafico(mapa, jogador); // Atualiza a representaï¿½ï¿½o grï¿½fica inicial
     }
 
 
 //...........................................................................................................................//
-MenuOptions currentOption = MENU_START;  // Define a opção de menu atual como "Iniciar Jogo".
-    int enterPressed = 0;  // Variável para rastrear se a tecla Enter foi pressionada.
+MenuOptions currentOption = MENU_START;  // Define a opï¿½ï¿½o de menu atual como "Iniciar Jogo".
+    int enterPressed = 0;  // Variï¿½vel para rastrear se a tecla Enter foi pressionada.
 
     while (!WindowShouldClose())
     {
-        // Lógica do menu
+        // Lï¿½gica do menu
         if (IsKeyPressed(KEY_UP))
         {
-            currentOption = (currentOption == MENU_START) ? MENU_EXIT : MENU_START;  // Alterna entre as opções de menu para cima.
+            currentOption = (currentOption == MENU_START) ? MENU_EXIT : MENU_START;  // Alterna entre as opï¿½ï¿½es de menu para cima.
         }
         else if (IsKeyPressed(KEY_DOWN))
         {
-            currentOption = (currentOption == MENU_EXIT) ? MENU_START : MENU_EXIT;  // Alterna entre as opções de menu para baixo.
+            currentOption = (currentOption == MENU_EXIT) ? MENU_START : MENU_EXIT;  // Alterna entre as opï¿½ï¿½es de menu para baixo.
         }
 
         if (IsKeyPressed(KEY_ENTER))
         {
-            enterPressed = 1;  // Define a variável enterPressed como 1 quando a tecla Enter é pressionada.
+            enterPressed = 1;  // Define a variï¿½vel enterPressed como 1 quando a tecla Enter ï¿½ pressionada.
         }
 
-        // Renderização
-        BeginDrawing();  // Inicia o processo de renderização.
-        DrawMenu(currentOption);  // Chama a função para desenhar o menu na tela.
-        EndDrawing();  // Finaliza o processo de renderização.
+        // Renderizaï¿½ï¿½o
+        BeginDrawing();  // Inicia o processo de renderizaï¿½ï¿½o.
+        DrawMenu(currentOption);  // Chama a funï¿½ï¿½o para desenhar o menu na tela.
+        EndDrawing();  // Finaliza o processo de renderizaï¿½ï¿½o.
 
-        // Processamento da seleção
+        // Processamento da seleï¿½ï¿½o
         if (enterPressed)
         {
 
             if (currentOption == MENU_START)
             {
 
-                //Para iniciar o jogo, o corpo coloquei o código
+                //Para iniciar o jogo, o corpo coloquei o cï¿½digo
                 // Fim do loop do menu
 
 //...........................................................................................................................//
@@ -413,6 +444,8 @@ MenuOptions currentOption = MENU_START;  // Define a opção de menu atual como "I
     {
 
         BeginDrawing();
+        
+        // clear the screen
         ClearBackground(RAYWHITE);
 
 //...........................................................................................................................//
@@ -420,10 +453,10 @@ MenuOptions currentOption = MENU_START;  // Define a opção de menu atual como "I
 //...........................................................................................................................//
 
 
-        for (int i = 0; i < num_inimigos; i++)
-        {
-            moveInimigo(&inimigos[i], LARGURA, ALTURA);
-        }
+        // for (int i = 0; i < num_inimigos; i++)
+        // {
+        //     moveInimigo(&inimigos[i], LARGURA, ALTURA);
+        // }
 
         int frame_counter = 0;
         int enemy_update_freq = 3;
@@ -431,10 +464,10 @@ MenuOptions currentOption = MENU_START;  // Define a opção de menu atual como "I
 
 
         atualizarMapaGrafico(mapa, jogador);
-        for (int i = 0; i < num_inimigos; i++)
-        {
-            moveInimigo(&inimigos[i], LARGURA, ALTURA);
-        }
+        // for (int i = 0; i < num_inimigos; i++)
+        // {
+        //     moveInimigo(&inimigos[i], LARGURA, ALTURA);
+        // }
 ////// TEMPO
 
 
@@ -453,25 +486,27 @@ MenuOptions currentOption = MENU_START;  // Define a opção de menu atual como "I
 
         if (IsKeyDown(KEY_RIGHT))
         {
-            jogador.dx = 1;
-            jogador.dy = 0;
+            printf("direita\n");
+            jogador.dx = 0;
+            jogador.dy = 1;
 
             if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
             {
-
+                printf("moveu direita\n");
                 move(&jogador);
                 atualizarMapaJogador(mapa, jogador);
+                // printMap(mapa);
             }
         }
         else if (IsKeyDown(KEY_LEFT))
         {
-
-            jogador.dx = -1;
-            jogador.dy = 0;
+            printf("esquerda\n");
+            jogador.dx = 0;
+            jogador.dy = -1;
 
             if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
             {
-
+                printf("moveu esquerda\n");
                 move(&jogador);
                 atualizarMapaJogador(mapa, jogador);
             }
@@ -479,26 +514,26 @@ MenuOptions currentOption = MENU_START;  // Define a opção de menu atual como "I
 
         if (IsKeyDown(KEY_DOWN))
         {
-
-            jogador.dy = 1;
-            jogador.dx = 0;
+            printf("baixo\n");
+            jogador.dy = 0;
+            jogador.dx = 1;
 
             if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
             {
-
+                printf("moveu baixo\n");
                 move(&jogador);
                 atualizarMapaJogador(mapa, jogador);
             }
         }
         else if (IsKeyDown(KEY_UP))
         {
-
-            jogador.dy = -1;
-            jogador.dx = 0;
+            printf("cima\n");
+            jogador.dy = 0;
+            jogador.dx = -1;
 
             if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
             {
-
+                printf("moveu cima\n");
                 move(&jogador);
                 atualizarMapaJogador(mapa, jogador);
             }
@@ -571,27 +606,28 @@ MenuOptions currentOption = MENU_START;  // Define a opção de menu atual como "I
         }
 
 
-// Atualiza a representacão visual a partir do estado do jogo
+// Atualiza a representacï¿½o visual a partir do estado do jogo
 
 
-// Move o quadrado roxo após verificar todas as colisões
-        if (deveMover(&jogador, LARGURA, ALTURA, mapa))
-        {
-            move(&jogador);
-        }
+// Move o quadrado roxo apï¿½s verificar todas as colisï¿½es
+        // if (deveMover(&jogador, LARGURA, ALTURA, mapa))
+        // {
+        //     move(&jogador);
+        // }
 
 //DrawText(texto, 400, 300, 40, YELLOW);//Desenha um texto, com posicao, tamanho e cor
-// Calcula as coordenadas para o retângulo e o texto
+// Calcula as coordenadas para o retï¿½ngulo e o texto
 
 
         DrawRectangle(jogador.x, jogador.y, 20, 20, VIOLET);
                 DrawMenu(currentOption);
         atualizarMapaGrafico(mapa,jogador);
-        DrawRectangle(LARGURA - 80, ALTURA - 40, 70, 30, WHITE); // Parte de trás do relógio
-        DrawText(tempoTexto, LARGURA - 75, ALTURA - 35, 20, RED); // Relógio
+        DrawRectangle(LARGURA - 80, ALTURA - 40, 70, 30, WHITE); // Parte de trï¿½s do relï¿½gio
+        DrawText(tempoTexto, LARGURA - 75, ALTURA - 35, 20, RED); // Relï¿½gio
 
         DrawText("Vidas:", LARGURA - 780, ALTURA - 40, 20, BLACK);
         DrawText(TextFormat("%d", vidas), LARGURA - 720, ALTURA - 40, 20, RED);
+
 
 
 
@@ -602,7 +638,7 @@ MenuOptions currentOption = MENU_START;  // Define a opção de menu atual como "I
                 {
                     CloseWindow();  // Fecha a janela do jogo.
                 }
-                enterPressed = 0;  // Redefine enterPressed para 0 após o processamento da seleção.
+                enterPressed = 0;  // Redefine enterPressed para 0 apï¿½s o processamento da seleï¿½ï¿½o.
             }
         }
     }// Fim do loop do menu
