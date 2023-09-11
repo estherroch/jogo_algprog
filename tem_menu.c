@@ -506,6 +506,9 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
         // clear the screen
         ClearBackground(RAYWHITE);
 
+        if(!vidas){
+            CloseWindow();
+        }
 //...........................................................................................................................//
 
 //...........................................................................................................................//
@@ -699,10 +702,7 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
 
                 if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
                 {
-                    if (isPortal(mapa, jogador))
-                    {
-                        CloseWindow();
-                    }
+                    
                     move(&jogador);
                     atualizarMapaJogador(mapa, jogador);
                 }
@@ -758,55 +758,6 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
                 // printMap(mapa);
             }
 //...........................................................................................................................//
-
-// VERIFICA COLISAO COM OS INIMIGOS.
-
-        for (int i = 0; i < MAX_INIMIGOS; i++)
-        {
-
-            if (CheckCollisionRecs((Rectangle)
-        {
-            jogador.x, jogador.y, LADO, LADO
-        }, (Rectangle)
-        {
-            inimigos[i].x, inimigos[i].y, LADO, LADO
-            }))
-            {
-
-                vidas--;
-            }
-
-            if (vidas <= 0)
-            {
-
-                reiniciarJogo(&jogador, inimigos, armadilha, &bomba, &vidas, mapa);
-            }
-        }
-
-
-// VERIFICA COLISAO COM ARMADILHAS
-
-        for (int i = 0; i < N_TRAPS; i++)
-        {
-
-            if (CheckCollisionRecs((Rectangle)
-        {
-            jogador.x, jogador.y, LADO, LADO
-        }, (Rectangle)
-        {
-            armadilha[i].x, armadilha[i].y, LADO, LADO
-            }))
-            {
-
-                vidas--;
-            }
-        }
-
-
-        if (vidas <= 0)
-        {
-            reiniciarJogo(&jogador, inimigos, armadilha, &bomba, &vidas, mapa);
-        }
 
 
 // Atualiza a representac�o visual a partir do estado do jogo
