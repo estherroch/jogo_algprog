@@ -13,6 +13,10 @@
 
 #define MAPA_LINHA 30
 #define MAPA_COLUNA 60
+#define UP 1
+#define DOWN 2
+#define LEFT 3
+#define RIGHT 4
 
 
 //=======================================================================================================================================================//
@@ -30,7 +34,9 @@ typedef struct   // CRIA UMA ESTRUTURA PARA ARMAZENAR A POSICAO DO JOGADOR E DOS
     int dy;
     int matrixPositionX;
     int matrixPositionY;
+    int vivo;
 } POSICAO;
+
 
 
 typedef enum //Menu
@@ -245,6 +251,7 @@ int leMapa(char *nome, POSICAO *jogador, POSICAO inimigos[], int *num_inimigos, 
                     inimigos[*num_inimigos].matrixPositionY = j;
                     inimigos[*num_inimigos].dx = GetRandomValue(-1, 1);
                     inimigos[*num_inimigos].dy = GetRandomValue(-1, 1);
+                    inimigos[*num_inimigos].vivo = 1;
                     (*num_inimigos)++;
                 }
             }
@@ -293,6 +300,34 @@ void escreverMovimentoInimigo(FILE *arquivo, POSICAO *inimigo)
     fclose(arquivo);
 }
 
+int canShoot(char mapa [MAPA_LINHA][MAPA_COLUNA], POSICAO jogador, int direction){
+    int x = jogador.matrixPositionX;
+    int y = jogador.matrixPositionY;
+    int dx = 0;
+    int dy = 0;
+    switch (direction)
+    {
+        case UP:
+            dx = -1;
+            break;
+        case DOWN:
+            dx = 1;
+            break;
+        case LEFT:
+            dy = -1;
+            break;
+        case RIGHT:
+            dy = 1;
+            break;
+        default:
+            break;
+    }
+    if (mapa[x + dx][y + dy] == '#')
+    {
+        return 0;
+    }
+    return 1;
+}
 
 //=======================================================================================================================================================//
 void atualizarMapaJogador(char mapa[MAPA_LINHA][MAPA_COLUNA], POSICAO jogador)
@@ -346,6 +381,18 @@ void atualizarMapaGrafico(char mapa[][MAPA_COLUNA], POSICAO jogador)
                     break;
                 case '#':
                     color = PINK;
+                    break;
+                case 'U':
+                    color = YELLOW;
+                    break;
+                case 'D':
+                    color = YELLOW;
+                    break;
+                case 'L':
+                    color = YELLOW;
+                    break;
+                case 'R':
+                    color = YELLOW;
                     break;
                 default:
                     break;
@@ -480,11 +527,117 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
         // make sure that the player can only move every 10 frames using time from last move
 
 
+        // update the projectile position by reading all the map and checking if there is a projectile
+        // if there is a projectile, update the position of the projectile
+        // if the projectile hits a wall, destroy the projectile
+        // if the projectile hits an enemy, destroy the projectile and the enemy
+        
+        for (int i = 0; i < MAPA_LINHA; i++)
+        {
+            for (int j = 0; j < MAPA_COLUNA; j++)
+            {
+                if (mapa[i][j] == 'U')
+                {
+                    if (mapa[i - 1][j] == '#')
+                    {
+                        mapa[i][j] = ' ';
+                    }
+                    else
+                    {
+                        if (mapa[i - 1][j] == 'I')
+                        {
+                            for (int k = 0; k < num_inimigos; k++)
+                            {
+                                if (inimigos[k].matrixPositionX == i - 1 && inimigos[k].matrixPositionY == j)
+                                {
+                                    inimigos[k].vivo = 0;
+                                }
+                            }
+                        }
+                        mapa[i][j] = ' ';
+                        mapa[i - 1][j] = 'U';
+                        
+                    }
+                }
+                if (mapa[i][j] == 'L')
+                {
+                    if (mapa[i][j - 1] == '#')
+                    {
+                        mapa[i][j] = ' ';
+                    }
+                    else
+                    {
+                        if (mapa[i][j - 1] == 'I')
+                        {
+                            for (int k = 0; k < num_inimigos; k++)
+                            {
+                                if (inimigos[k].matrixPositionX == i && inimigos[k].matrixPositionY == j - 1)
+                                {
+                                    inimigos[k].vivo = 0;
+                                }
+                            }
+                        }
+                        mapa[i][j] = ' ';
+                        mapa[i][j - 1] = 'L';
+                        
+                    }
+                }
+            }
+        }
+
+        for (int i = MAPA_LINHA - 1; i >= 0; i--){
+            for (int j = MAPA_COLUNA - 1; j >= 0; j--){
+                if (mapa[i][j] == 'R')
+                {
+                    if (mapa[i][j + 1] == '#')
+                    {
+                        mapa[i][j] = ' ';
+                    }
+                    else
+                    {
+                        if (mapa[i][j + 1] == 'I')
+                        {
+                            for (int k = 0; k < num_inimigos; k++)
+                            {
+                                if (inimigos[k].matrixPositionX == i && inimigos[k].matrixPositionY == j + 1)
+                                {
+                                    inimigos[k].vivo = 0;
+                                }
+                            }
+                        }
+                        mapa[i][j] = ' ';
+                        mapa[i][j + 1] = 'R';
+                    }
+                }
+                if (mapa[i][j] == 'D')
+                {
+                    if (mapa[i + 1][j] == '#')
+                    {
+                        mapa[i][j] = ' ';
+                    }
+                    else
+                    {
+                        if (mapa[i + 1][j] == 'I')
+                        {
+                            for (int k = 0; k < num_inimigos; k++)
+                            {
+                                if (inimigos[k].matrixPositionX == i + 1 && inimigos[k].matrixPositionY == j)
+                                {
+                                    inimigos[k].vivo = 0;
+                                }
+                            }
+                        }
+                        mapa[i][j] = ' ';
+                        mapa[i + 1][j] = 'D';
+                    }
+                }
+            }
+        }
+
         if (GetTime() - lastMove > 0.1)
         {
             lastMove = GetTime();
-            printf("last move: %f\n", lastMove);
-            if (IsKeyDown(KEY_RIGHT))
+            if (IsKeyDown(KEY_D))
             {
                 jogador.dx = 0;
                 jogador.dy = 1;
@@ -495,7 +648,7 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
                     atualizarMapaJogador(mapa, jogador);
                 }
             }
-            else if (IsKeyDown(KEY_LEFT))
+            else if (IsKeyDown(KEY_A))
             {
                 jogador.dx = 0;
                 jogador.dy = -1;
@@ -507,7 +660,7 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
                 }
             }
 
-            if (IsKeyDown(KEY_DOWN))
+            if (IsKeyDown(KEY_S))
             {
                 jogador.dy = 0;
                 jogador.dx = 1;
@@ -518,7 +671,7 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
                     atualizarMapaJogador(mapa, jogador);
                 }
             }
-            else if (IsKeyDown(KEY_UP))
+            else if (IsKeyDown(KEY_W))
             {
                 jogador.dy = 0;
                 jogador.dx = -1;
@@ -541,14 +694,38 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
             }
         }
 
+        if(IsKeyDown(KEY_UP)){
+            if(canShoot(mapa, jogador, UP)){
+                mapa[jogador.matrixPositionX - 1][jogador.matrixPositionY] = 'U';
+            }
+        }
+        if(IsKeyDown(KEY_DOWN)){
+            if(canShoot(mapa, jogador, DOWN)){
+                mapa[jogador.matrixPositionX + 1][jogador.matrixPositionY] = 'D';
+            }
+        }
+        if(IsKeyDown(KEY_LEFT)){
+            if(canShoot(mapa, jogador, LEFT)){
+                mapa[jogador.matrixPositionX][jogador.matrixPositionY - 1] = 'L';
+            }
+        }
+        if(IsKeyDown(KEY_RIGHT)){
+            if(canShoot(mapa, jogador, RIGHT)){
+                mapa[jogador.matrixPositionX][jogador.matrixPositionY + 1] = 'R';
+            }
+        }
+
         if (segundos % enemy_update_freq == 0) // MOVIMENTA O INIMIGO
             {
                 if (lastUpdate != segundos)
                 {
                     for (int i = 0; i < num_inimigos; i++)
                     {
-                        if(moveInimigo(&inimigos[i], MAPA_LINHA, ALTURA, mapa))
-                            atualizarMapaInimigo(mapa, inimigos[i]);
+                        if (inimigos[i].vivo == 1)
+                        {
+                            if(moveInimigo(&inimigos[i], MAPA_LINHA, ALTURA, mapa))
+                                atualizarMapaInimigo(mapa, inimigos[i]);
+                        }
                     }
                     lastUpdate = segundos;
                     printf("segundos: %d\n", segundos);
@@ -635,13 +812,14 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
         EndDrawing();//Finaliza o ambiente de desenho na tela
 
     }
-      if (currentOption == MENU_EXIT)
+      
+    }
+    if (currentOption == MENU_EXIT)
                 {
                     CloseWindow();  // Fecha a janela do jogo.
                 }
                 enterPressed = 0;  // Redefine enterPressed para 0 ap�s o processamento da sele��o.
-            }
-        }
+    }
     }// Fim do loop do menu
 
 
