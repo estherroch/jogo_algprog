@@ -88,6 +88,15 @@ int deveMover(POSICAO *jogador, int alt, int larg, char mapa[MAPA_LINHA][MAPA_CO
     return 1; // CASO ESTEJA FORA DOS LIMITES OU SEJA UMA PAREDE.
 }
 
+int isPortal(char mapa[MAPA_LINHA][MAPA_COLUNA], POSICAO jogador)
+{
+    if (mapa[jogador.matrixPositionX + jogador.dx][jogador.matrixPositionY + jogador.dy] == 'P')
+    {
+        return 1;
+    }
+    return 0;
+}
+
 void DrawMenu(MenuOptions currentOption)   // Funcao que abre o MENU
 {
     ClearBackground(RAYWHITE);  // Limpa o fundo da tela com a cor branca.
@@ -634,7 +643,7 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
             }
         }
 
-        if (GetTime() - lastMove > 0.1)
+        if (GetTime() - lastMove > 0.1) // define velocidade jogador
         {
             lastMove = GetTime();
             if (IsKeyDown(KEY_D))
@@ -644,6 +653,10 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
                 
                 if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
                 {
+                    if (isPortal(mapa, jogador))
+                    {
+                        CloseWindow();
+                    }
                     move(&jogador);
                     atualizarMapaJogador(mapa, jogador);
                 }
@@ -655,6 +668,10 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
 
                 if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
                 {
+                    if (isPortal(mapa, jogador))
+                    {
+                        CloseWindow();
+                    }
                     move(&jogador);
                     atualizarMapaJogador(mapa, jogador);
                 }
@@ -667,6 +684,10 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
 
                 if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
                 {
+                    if (isPortal(mapa, jogador))
+                    {
+                        CloseWindow();
+                    }
                     move(&jogador);
                     atualizarMapaJogador(mapa, jogador);
                 }
@@ -678,6 +699,10 @@ MenuOptions currentOption = MENU_START;  // Define a op��o de menu atual com
 
                 if (deveMover(&jogador, MAPA_LINHA, MAPA_COLUNA, mapa))
                 {
+                    if (isPortal(mapa, jogador))
+                    {
+                        CloseWindow();
+                    }
                     move(&jogador);
                     atualizarMapaJogador(mapa, jogador);
                 }
